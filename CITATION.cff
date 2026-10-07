@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+title: 'CCEM: Cosmic Cuddles Euclid Mocks'
+message: >-
+  If you use this software, please cite the following paper: Ruhberg, L. E., et al. (2026, in prep).
+type: software
+authors:
+  - given-names: Laslo Erik
+    family-names: Ruhberg
+    orcid: 'https://orcid.org/0009-0003-3810-1245'
+identifiers:
+  - type: doi
+    value: ''
+  - type: url
+    value: ''
+repository-code: >-
+  https://github.com/Lasloruhberg/Cosmic-Cuddles-Euclid-Mocks
+abstract: >-
+  This repository allows to utilise the IllustrisTNG
+  Visualisation API to generate realistic Euclid mock images
+  by mocking Euclid wide survey observations that include
+  photon noise, drizzling, read-out-noise, and MACC
+  sampling, based on Q1 values. Real background are then
+  superimposed.
+license: MIT
