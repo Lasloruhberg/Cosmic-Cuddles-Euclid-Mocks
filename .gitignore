@@ -218,3 +218,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+config/tng_credentials.yaml
+output/
+data/
+*.part
+*.egg-info/
+__pycache__/
+.pytest_cache/
+*.md/
+!README.md
