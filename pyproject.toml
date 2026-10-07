@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "euclid-mocks"
+version = "0.1.0"
+description = "Euclid Q1-like VIS/NISP mock images of IllustrisTNG galaxies via the TNG visualisation API"
+requires-python = ">=3.11"
+
+[tool.setuptools]
+packages = ["euclid_mocks"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

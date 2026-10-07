@@ -1,0 +1,27 @@
+name: euclid-mocks
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - numpy>=2.0
+  - scipy
+  - astropy>=6.1
+  - photutils>=3.0
+  - scikit-image
+  - h5py
+  - pandas
+  - requests
+  - pyyaml
+  - dotmap
+  - loguru
+  - matplotlib
+  - pytest
+  - ipykernel
+  - nbclient
+  - nbformat
+  - pip
+  - pip:
+      # drizzle is not packaged on conda-forge; 2.x is the resample/calc_pixmap API used here.
+      - drizzle>=2.2,<3
+      - fitsbolt>=0.3.1          # reading and normalising ScienceReady images for plotting
+      - -e .

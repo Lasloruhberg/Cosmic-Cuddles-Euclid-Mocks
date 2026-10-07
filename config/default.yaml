@@ -1,0 +1,128 @@
+# Default run configuration. Relative paths resolve against this file's directory.
+# Out of the box the Euclid inputs point at the mock tile (scripts/make_mock_tile.py).
+# For production, point euclid_mer_dir / empty_region_dir at the Q1 MER data.
+
+paths:
+  output_dir: ../output                      # ScienceReady/, per-snapshot CSVs
+  tng_cache_dir: ../output/tng_cache         # cached vis.hdf5 renders
+  merger_dir: ../output/mergers              # merger histories, subhalo queries, merger dicts
+  euclid_mer_dir: ../data/mock_tile/MER      # {tile}/VIS|NISP/EUC_MER_{BGSUB-MOSAIC,GRID-PSF}-*.fits
+  empty_region_dir: ../data/mock_tile/EmptyRegionsCatalog   # TILE_{tile}_empty_regions.csv
+  mer_segmap_dir: ../data/mock_tile/MER      # {tile}/EUC_MER_FINAL-SEGMAP*.fits (Q1: .../Q1_R1/MER_SEG)
+  credentials_file: tng_credentials.yaml     # copy from tng_credentials.example.yaml
+  mock_tile_dir: ../data/mock_tile           # written by scripts/make_mock_tile.py
+
+tng:
+  base_url: https://www.tng-project.org/api/
+  simulation: TNG50-1
+  timeout_s: 1000
+  n_attempts: 2            # the render server occasionally drops a request
+  retry_wait_s: 5          # pause before a retry and before the render-timeout fallback
+
+render:
+  n_pixels: 500
+  size_in_half_mass_radii: 22.5   # 2 * 3 * 2.5 * 1.5 stellar half-mass radii across
+  axes: "1,2"                     # projection plane; the omitted axis is the line of sight
+  particle_type: stars
+  particle_field: stellarBandObsFrame-   # observed-frame apparent mag/arcsec^2
+  method: sphMap # renders the chosen halo and surrounding volume. Swap out for sphMap_subhalo to render only the subhalo itself (no surrounding volume).
+  timeout_fallback:
+    # sphMap renders of galaxies in very massive FoF groups exceed the render server's
+    # gateway limit (HTTP 504). If enabled, such a galaxy is re-rendered in all bands with
+    # `method` below (subhalo particles only: companions that are separate subhaloes are
+    # missing). The method used is flagged in the CSV column `render_method` and header M_METH.
+    enabled: true
+    method: sphMap_subhalo
+
+selection:
+  min_redshift: 5.0e-5
+  min_star_particles: 10
+  min_stellar_mass_msun: 3.0e+6
+  min_size_arcmin: 0.024           # 1.5 * 0.016 arcmin, ~15 VIS pixels
+  faintest_allowed_peak_sb: 28.0   # reject if the brightest pixel is fainter (mag/arcsec^2)
+
+detector:
+  planned_shape_px: 999
+  min_overhang_px: 2
+  source_padding_px: 2
+  vis_brim_trim_px: 2
+
+background:
+  border_size_factor: 0.52       # required border distance = factor * min(image shape)
+  object_distance_factor: 0.4    # required object distance = factor * border distance
+  min_offset_factor: 0.1
+  max_fallback_tiles: 3
+  max_retries: 5
+  max_bad_pixel_fraction: 0.2
+  quality_check_band: NIR-H
+  detection_box_half_size_px: 4
+  noise_sigma_clip: 3.0
+  noise_sigma_clip_maxiters: 5
+
+psf:
+  # SplitCosineBellWindow parameters of the delta -> Euclid PSF matching kernel.
+  window:
+    VIS: {alpha: 0.8, beta: 0.75}
+    NIR-Y: {alpha: 0.5, beta: 0.5}
+    NIR-J: {alpha: 0.5, beta: 0.5}
+    NIR-H: {alpha: 0.5, beta: 0.5}
+
+# Empty-region search on real MER segmentation maps (values used for the Q1 catalogue).
+empty_regions:
+  min_empty_pixels_area: 10
+  min_object_distance_px: 50
+  min_border_distance_px: 1100
+  peak_min_distance_px: 300
+
+mergers:
+  load_mass_limit_log_msun: 9.5
+  max_mass_log_msun: 18.0
+  min_halfmassrad_stars: 0.3     # ckpc/h, API query cut
+  import_limit: 3000000
+  major_window_gyr: 2.0  #selection for major mergers: 2 Gyr before and after the merger event
+  minor_window_gyr: 2.0  #selection for minor mergers: 2 Gyr before and after the merger event
+  non_merging_window_gyr: 2.5 #selection for non-merging systems: outside of 2.5 Gyr before and after the merger event
+  max_major: 5000
+  max_minor: 3000
+  with_constraint: true          # use the resolution-limited WithConstraint group
+  past_mass_max_steps: 30        # SubLink progenitor hops for the max past mass
+  shuffle_seed: 0
+
+sampling:
+  seed: 42
+  n_major: 1000
+  n_minor: 1000
+  n_non_merging: 100
+
+# This details how the run is named, what snapshots are processed and how many processes are used. The CSV name is formatted with the run version, sample size, snapshot and seed.
+run:
+  version: V_1_0
+  snapshots: [53, 52, 51, 50, 49, 48]
+  n_processes: 4
+  log_level: INFO
+  csv_name: "{version}_TIMESCALE_part_{sample_size}perc_recombined_df_snap{snapshot}_seed{seed}.csv"
+
+# Synthetic MER tile for offline runs; depths and PSFs are approximate Q1 values.
+mock_tile:
+  tile_id: 999000001
+  size_px: 1024
+  pixel_scale_arcsec: 0.1
+  ra_deg: 270.0
+  dec_deg: 66.0
+  seed: 7
+  n_galaxies: 30
+  n_stars: 10
+  mag_range: [19.5, 24.0]
+  psf_grid_cells: 4
+  psf_moffat_beta: 3.0
+  segmap_threshold_sigma: 1.0
+  bands:
+    VIS:   {magzero: 24.6, depth_mag: 25.6, depth_nsigma: 10.0, depth_aperture_arcsec: 1.3, psf_fwhm_arcsec: 0.17, psf_stamp_px: 33}
+    NIR-Y: {magzero: 29.8, depth_mag: 24.4, depth_nsigma: 5.0, depth_aperture_arcsec: 2.0, psf_fwhm_arcsec: 0.47, psf_stamp_px: 51}
+    NIR-J: {magzero: 30.0, depth_mag: 24.4, depth_nsigma: 5.0, depth_aperture_arcsec: 2.0, psf_fwhm_arcsec: 0.49, psf_stamp_px: 51}
+    NIR-H: {magzero: 29.9, depth_mag: 24.4, depth_nsigma: 5.0, depth_aperture_arcsec: 2.0, psf_fwhm_arcsec: 0.51, psf_stamp_px: 51}
+  empty_regions:
+    min_empty_pixels_area: 10
+    min_object_distance_px: 20
+    min_border_distance_px: 100
+    peak_min_distance_px: 40
